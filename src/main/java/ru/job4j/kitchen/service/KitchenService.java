@@ -5,7 +5,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.core.*;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
-import ru.job4j.kitchen.model.Order;
+import ru.job4j.kitchen.model.*;
+import ru.job4j.kitchen.repository.*;
+
+import javax.transaction.*;
+import java.util.*;
 
 @Service
 @Slf4j
@@ -13,6 +17,11 @@ import ru.job4j.kitchen.model.Order;
 public class KitchenService {
 
     private final KafkaTemplate<String, String> kafkaTemplate;
+    private final KitchenRepository kitchenRepository;
+
+    public Optional<Kitchen> findById(int id) {
+        return kitchenRepository.findById(id);
+    }
 
     /**@KafkaListener(topics = "job4j_orders")*/
     @KafkaListener(topics = "preorder")
@@ -22,7 +31,7 @@ public class KitchenService {
     }
 
     private String getDish(int dishId) {
-        if (dishId % 2 == 0) {
+        if (findById(dishId).isPresent()) {
             return "Готов к выдаче";
         }
         return "Нет такого блюда";
